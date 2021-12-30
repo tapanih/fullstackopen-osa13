@@ -1,18 +1,18 @@
 const unknownEndpoint = (req, res) => {
-    res.status(404).send({error: 'unknown endpoint'})
-}
+    res.status(404).send({error: "unknown endpoint"});
+};
 
 const errorHandler = (error, req, res, next) => {
-    if (error.name === 'SequelizeValidationError' || error.message === 'invalid likes') {
-        return res.status(400).json({error: 'invalid request'});
+    if (error.name === "SequelizeValidationError") {
+        return res.status(400).json({error: "invalid request"});
     }
-    if (error.message === 'not found') {
-        return res.status(404).json({error: 'not found'});
+    if (error.message) {
+        return res.status(400).json({error: error.message});
     }
-    next(error)
-}
+    next(error);
+};
 
 
 module.exports = {
-    unknownEndpoint, errorHandler
-}
+    unknownEndpoint, errorHandler,
+};

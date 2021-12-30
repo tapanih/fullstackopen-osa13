@@ -5,7 +5,7 @@ const {Blog} = require('../models');
 const blogFinder = async (req, res, next) => {
     req.blog = await Blog.findByPk(req.params.id);
     if (!req.blog) throw Error('not found');
-    next()
+    next();
 }
 
 router.get('/', async (req, res) => {
@@ -30,4 +30,4 @@ router.delete('/:id', blogFinder, async (req, res) => {
     res.json(req.blog);
 });
 
-module.exports = router
+module.exports = router;
