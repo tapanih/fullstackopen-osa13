@@ -3,8 +3,8 @@ const unknownEndpoint = (req, res) => {
 };
 
 const errorHandler = (error, req, res, next) => {
-    if (error.name === "SequelizeValidationError") {
-        return res.status(400).json({error: "invalid request"});
+    if (error.name === "SequelizeValidationError" || error.name === "SequelizeUniqueConstraintError") {
+        return res.status(400).json({error: error.errors.map(err => err.message)});
     }
     if (error.message) {
         return res.status(400).json({error: error.message});
