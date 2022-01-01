@@ -1,9 +1,15 @@
+const Blog = require("../models/blog");
 const router = require("express").Router();
 const {User} = require("../models");
 const {isString} = require("../util/helpers");
 
 router.get("/", async (req, res) => {
-    const users = await User.findAll();
+    const users = await User.findAll({
+        include: {
+            model: Blog,
+            attributes: {exclude: ["userId"]},
+        },
+    });
     res.json(users);
 });
 
