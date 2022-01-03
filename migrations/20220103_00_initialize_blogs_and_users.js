@@ -55,7 +55,7 @@ module.exports = {
         await queryInterface.addColumn("blogs", "user_id", {
             type: DataTypes.INTEGER,
             allowNull: false,
-            references: {model: "blogs", key: "id"},
+            references: {model: "users", key: "id"},
         });
     },
     down: async (queryInterface) => {
