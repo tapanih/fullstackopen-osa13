@@ -1,4 +1,5 @@
 const Blog = require("../models/blog");
+const ReadingList = require("../models/readingList");
 const router = require("express").Router();
 const {User} = require("../models");
 const {isString} = require("../util/helpers");
@@ -13,6 +14,21 @@ router.get("/", async (req, res) => {
     res.json(users);
 });
 
+router.get("/:id", async (req, res) => {
+    const user = await User.findByPk(req.params.id, {
+        attributes: ["name", "username"],
+        include: [
+            {
+                model: Blog,
+                as: "readings",
+                attributes: {exclude: ["userId"]},
+                through: {attributes: []},
+            }],
+    });
+    if (!user) throw Error("not found");
+    res.json(user);
+});
+
 router.post("/", async (req, res) => {
     const user = await User.create(req.body);
     res.json(user);
@@ -21,7 +37,6 @@ router.post("/", async (req, res) => {
 router.put("/:username", async (req, res) => {
     const user = await User.findOne({where: {username: req.params.username}});
     if (!user) throw Error("not found");
-    console.log(req.body.name);
     if (!isString(req.body.name)) throw Error("invalid name");
     user.name = req.body.name;
     await user.save();
