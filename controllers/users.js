@@ -1,5 +1,4 @@
 const Blog = require("../models/blog");
-const ReadingList = require("../models/readingList");
 const router = require("express").Router();
 const {User} = require("../models");
 const {isString} = require("../util/helpers");

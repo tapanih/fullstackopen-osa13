@@ -1,6 +1,6 @@
 const User = require("../models/user");
+const {authorizedUser} = require("../util/middleware");
 const {Op} = require("sequelize");
-const {tokenExtractor} = require("../util/middleware");
 const router = require("express").Router();
 
 const {Blog} = require("../models");
@@ -39,10 +39,8 @@ router.get("/", async (req, res) => {
     res.json(blogs);
 });
 
-router.post("/", tokenExtractor, async (req, res) => {
-    const user = await User.findByPk(req.decodedToken.id);
-    if (!user) throw Error("invalid token");
-    const blog = await Blog.create({...req.body, userId: user.id});
+router.post("/", authorizedUser, async (req, res) => {
+    const blog = await Blog.create({...req.body, userId: req.user.id});
     res.json(blog);
 });
 
@@ -53,10 +51,8 @@ router.put("/:id", blogFinder, async (req, res) => {
     res.json(req.blog);
 });
 
-router.delete("/:id", blogFinder, tokenExtractor, async (req, res) => {
-    const user = await User.findByPk(req.decodedToken.id);
-    if (!user) throw Error("invalid token");
-    if (user.id !== req.blog.userId) throw Error("unauthorized");
+router.delete("/:id", blogFinder, authorizedUser, async (req, res) => {
+    if (req.user.id !== req.blog.userId) throw Error("unauthorized");
     await req.blog.destroy();
     res.json(req.blog);
 });

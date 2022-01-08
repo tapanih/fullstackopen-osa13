@@ -1,4 +1,6 @@
 const jwt = require("jsonwebtoken");
+const User = require("../models/user");
+const Session = require("../models/session");
 const {SECRET} = require("../util/config");
 
 const unknownEndpoint = (req, res) => {
@@ -16,20 +18,44 @@ const errorHandler = (error, req, res, next) => {
     next(error);
 };
 
-const tokenExtractor = (req, res, next) => {
-    const authorization = req.get("authorization");
+const extractToken = authorization => {
     if (authorization && authorization.toLowerCase().startsWith("bearer ")) {
-        try {
-            req.decodedToken = jwt.verify(authorization.substring(7), SECRET);
-        } catch (error) {
-            throw Error("token invalid");
-        }
-    } else {
-        throw Error("token missing");
+        return authorization.substring(7);
+    }
+    throw Error("token missing");
+};
+
+const decodeToken = token => {
+    try {
+        return jwt.verify(token, SECRET);
+    } catch (error) {
+        throw Error("token invalid");
+    }
+};
+
+const authorizedUser = async (req, res, next) => {
+    const authorization = req.get("authorization");
+    const token = extractToken(authorization);
+    const decodedToken = decodeToken(token);
+    const session = await Session.findOne({
+        where: {
+            userId: decodedToken.id,
+            token: token,
+        },
+    });
+    req.user = await User.findByPk(decodedToken.id);
+    if (!session || !req.user) throw Error("token invalid");
+    if (req.user.disabled) {
+        await Session.destroy({
+            where: {
+                userId: req.user.id,
+            },
+        });
+        throw Error("account disabled");
     }
     next();
 };
 
 module.exports = {
-    unknownEndpoint, errorHandler, tokenExtractor,
+    unknownEndpoint, errorHandler, authorizedUser,
 };
